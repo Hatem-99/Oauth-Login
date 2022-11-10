@@ -5,14 +5,17 @@ import mongoose from "mongoose";
 import blogsRouter from "./api/blogs/index.js";
 import { forbiddenErrorHandler, genericErrorHandler,notFoundErrorHandler, unauthorizedErrorHandler } from "./errorHandling.js";
 import usersRouter from "./api/users/index.js";
+import googleStrategy from "./api/users/lib/google.js";
+import passport from "passport";
 
-
+passport.use("google", googleStrategy)
 
 const server = express();
 const port = 3001;
 
 server.use(cors());
 server.use(express.json());
+server.use(passport.initialize())
 
 server.use("/blogs", blogsRouter)
 server.use("/users", usersRouter)

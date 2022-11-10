@@ -1,13 +1,38 @@
 import express from "express";
 import createHttpError from "http-errors";
 import { adminOnlyMiddleware } from "./lib/adminonly.js";
+import passport from "passport";
 import UsersModel from "./model.js";
 import blogsModel from "../blogs/model.js";
 import { JwtAuthenticationMiddleware } from "./lib/tokenBaseAuth.js";
-import { createTokens, verifyAccessRefreshToken, verifyRefreshAndCreateNewTokens } from "./lib/tools.js";
+import {
+  createTokens,
+  verifyAccessRefreshToken,
+  verifyRefreshAndCreateNewTokens,
+} from "./lib/tools.js";
 import { checkUserSchema } from "./validator.js";
 
 const usersRouter = express.Router();
+
+usersRouter.get(
+  "/googleLogin",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+usersRouter.get(
+  "/googleRedirect",
+  passport.authenticate("google", { session: false }),
+  async (req, res, next) => {
+    try {
+    const { accessToken } = req.user;
+    res.redirect(`http://localhost:3000/home?accessToken=${accessToken}`)
+
+    
+    } catch (error) {
+      next(error);
+    }
+  }
+ );
 
 usersRouter.post("/", async (req, res, next) => {
   try {
@@ -150,7 +175,7 @@ usersRouter.put("/refreshTokens", async (req, res, next) => {
     const { accessToken, refreshToken } = await verifyRefreshAndCreateNewTokens(
       currentrefreshToken
     );
-    console.log(accessToken,refreshToken)
+    console.log(accessToken, refreshToken);
 
     res.send({ accessToken, refreshToken });
   } catch (error) {
